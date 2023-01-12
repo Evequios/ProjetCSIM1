@@ -1,5 +1,63 @@
 <?php
 include('db.php');
+
+if(isset($_POST['bilans'])){
+  $date = date('Y', strtotime('-2 years')).'-12-31';
+  pg_query($conn, "DELETE FROM bilan WHERE datecreation <= '$date'");
+  header("Location:index.php?.$date");
+}
+
+if(isset($_POST['offres'])){
+  pg_query($conn, "UPDATE offre SET etatoffre = 'Expired' WHERE datepublicationoffre + delaioffre < NOW() AND etatoffre='Added'");
+  header("Location:index.php?");
+}
+
+if(isset($_POST['archive'])){
+  
+  $listeVoitures = pg_query($conn, "SELECT * FROM voiture WHERE prixventefinal > 0 AND commentaire IS NOT NULL");
+  while ($donnees = pg_fetch_array($listeVoitures)){
+    $idvoiture = $donnees['idvoiture'];
+    pg_query($conn, "INSERT INTO historiquevoiture (SELECT * FROM voiture WHERE idvoiture = '$idvoiture')");
+  }
+
+
+  $listeOffres = pg_query($conn, "SELECT * FROM offre WHERE etatoffre = 'Finished'");
+  while ($donnees = pg_fetch_array($listeOffres)){
+    $idoffre = $donnees['idoffre'];
+    pg_query($conn, "INSERT INTO historiqueoffre
+    SELECT idoffre, prixoffre, datepublicationoffre, datevente, voiture, garage FROM offre WHERE idoffre = $idoffre");
+  }
+
+  $listePropositions = pg_query($conn, "SELECT * FROM propositionachat WHERE etatproposition = 'Accepted'");
+  while ($donnees = pg_fetch_array($listePropositions)){
+    $idproposition = $donnees['idproposition'];
+    pg_query($conn, "INSERT INTO historiquepropositionachat
+    SELECT idproposition, prixproposition, dateproposition, offre, client FROM propositionachat WHERE idproposition ='$idproposition'");
+  }
+
+  pg_query($conn, "DELETE FROM propositionachat WHERE etatproposition = 'Declined'");
+  // pg_query($conn, "DELETE FROM offre WHERE etatoffre = 'Expired'");
+
+  $listePropositionsHisto = pg_query($conn, "SELECT * FROM historiquepropositionachat");
+  while ($donnees = pg_fetch_array($listePropositionsHisto)){
+    $idpropositionhisto = $donnees['idproposition'];
+    pg_query($conn, "DELETE FROM propositionachat WHERE idproposition ='$idpropositionhisto'");
+  }
+
+  $listeOffresHisto = pg_query($conn, "SELECT * FROM historiqueoffre");
+  while ($donnees = pg_fetch_array($listeOffresHisto)){
+    $idoffrehisto = $donnees['idoffre'];
+    pg_query($conn, "DELETE FROM offre WHERE idoffre ='$idoffrehisto'");
+  }
+
+  $listeVoituresHisto = pg_query($conn, "SELECT * FROM historiquevoiture");
+  while ($donnees = pg_fetch_array($listeVoituresHisto)){
+    $idvoiturehisto = $donnees['idvoiture'];
+    pg_query($conn, "DELETE FROM voiture WHERE idvoiture ='$idvoiturehisto'");
+  }
+
+  header("Location:index.php");
+}
 ?>
 
 <!doctype html>
@@ -10,7 +68,7 @@ include('db.php');
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.6">
-    <title>ProjetCSI-IA</title>
+    <title>ProjetM1</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/jumbotron/">
 
@@ -41,64 +99,77 @@ include('db.php');
   </head>
   <body>
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-  <a class="navbar-brand"><b>ProjetCSI-IA</b></a>
-  <li class="navbar-toggler" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-    </li>
-  
-
-  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a href="index.php" class="nav-link">Homepage<span class="sr-only">(current)</span></a>
+    <a class="navbar-brand"><b>ProjetCSI-IA</b></a>
+    <li class="navbar-toggler" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
       </li>
-      
-      <li class="nav-item active">
-        <a class="nav-link" href="offres.php">Offers</a>
-      </li>
+    
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a href="index.php" class="nav-link">Homepage<span class="sr-only">(current)</span></a>
+        </li>
+        
+        <li class="nav-item active">
+          <a class="nav-link" href="offres.php">Offers</a>
+        </li>
 
-      <?php if($type == 'client'){?>
-      <li class="nav-item active">
-        <a class="nav-link" href="mes_propositions.php">My purchase proposals</a>
-      </li>
-      <?php }?>
+        <?php if(isset($_SESSION['email']) && $type != 'client'){ ?>
+        <li class="nav-item active">
+          <a class="nav-link" href="vehicules.php">Vehicles</a>
+        </li>
+        <?php } ?>
 
-      <?php if($type == 'garage'){?>
-      <li class="nav-item active">
-        <a class="nav-link" href="propositions.php">Manage purchase proposals</a>
-      </li>
+        <?php if(isset($_SESSION['email']) && $type == 'client'){?>
+        <li class="nav-item active">
+          <a class="nav-link" href="mes_propositions.php">My purchase proposals</a>
+        </li>
+        <?php }?>
 
-      <li class="nav-item active">
-        <a class="nav-link" href="bilan.php">Reports</a>
-      </li>
-      <?php }?>
-      
-    </ul>
+        <?php if(isset($_SESSION['email']) && $type == 'garage'){?>
+        <li class="nav-item active">
+          <a class="nav-link" href="propositions.php">Manage purchase proposals</a>
+        </li>
+        <?php }?>
 
-    <form class="form-inline my-2 my-lg-0">
-      <?php if(isset($_SESSION['email'])){?>
-      <a href="mon_compte.php?id=<?= $id?><?php if(isset($statut)){echo '&?statut='.$statut;}?>" class="btn btn-outline-success my-2 my-sm-0">My account</a>
-      &nbsp;
-      <a href="logout.php" class="btn btn-outline-success my-2 my-sm-0">Log out</a>
-      <?php } else { ?>
-      <a href="connexion.php" class="btn btn-outline-success my-2 my-sm-0">Log in</a>
-      &nbsp;
-      <a href="inscription.php" class="btn btn-outline-success my-2 my-sm-0">Sign up</a>
-      <?php } ?>
-    </form>
-  </div>
-</nav>
+        <?php if(isset($_SESSION['email']) && $type != 'client'){ ?>
+        <li class="nav-item active">
+          <a class="nav-link" href="bilan.php">Reports</a>
+        </li>
+        <?php }?>
+      </ul>
+
+      <form class="form-inline my-2 my-lg-0">
+        <?php if(isset($_SESSION['email'])){?>
+        <a href="mon_compte.php?id=<?= $id?><?php if(isset($statut)){echo '&?statut='.$statut;}?>" class="btn btn-outline-success my-2 my-sm-0">My account</a>
+        &nbsp;
+        <a href="logout.php" class="btn btn-outline-success my-2 my-sm-0">Log out</a>
+        <?php } else { ?>
+        <a href="connexion.php" class="btn btn-outline-success my-2 my-sm-0">Log in</a>
+        &nbsp;
+        <a href="inscription.php" class="btn btn-outline-success my-2 my-sm-0">Sign up</a>
+        <?php } ?>
+      </form>
+    </div>
+  </nav>
 
 <main role="main">
   <form method="post">
   <!-- Main jumbotron for a primary marketing message or call to action -->
   <div class="jumbotron">
     <div class="container">
-      <h1 class="display-3"><font size=20>Hello <?php if(isset($_SESSION['email'])){
+      <h1 class="display-3"><font size=20>Hello <?php if(isset($_SESSION['email']) && isset($type)){
         if($type == 'client'){echo $prenom." ".$nom; } 
-        if($type == 'garage'){echo $nom;}}?></font></h1>
+        if($type == 'garage'){echo $nom;}
+        if($type == 'administrateur'){echo 'Administrator';}}?></font></h1>
     </div>
   </div>
+
+  <?php if(isset($type) && $type == 'administrateur' && isset($_SESSION['email'])){?>
+    <center><button name="bilans" type="submit" class="info">Delete two years old reports</button></center>
+    <center><button name="offres" type="submit" class="info">Expired offers</button></center>
+    <center><button name="archive" type="submit" class="info">Archive</button></center>
+  <?php } ?>
   </form>
 </main>
 

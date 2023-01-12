@@ -37,9 +37,20 @@ if(isset($_POST['submit'])){
       exit;
     }
     else{
+      $SQL3 = pg_query($conn, "SELECT * FROM administrateur WHERE identifiantcompte= '$mail' AND motdepassecompte= '$password'");
+      $nb_rows3 = pg_num_rows($SQL3);
+      if($nb_rows3 > 0)
+      {
+        // Connexion de l'admin et accès à l'accueil
+        $_SESSION['email']= $mail;
+        header("Location: index.php");
+        exit;
+      }
+      else{
       // Si aucun compte existant ne correspond à ces identifiants
       header("Location: connexion.php?invalid");
       exit;
+      }
     }
   }
 }
@@ -57,7 +68,7 @@ if(isset($_POST['submit'])){
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.6">
     
-    <title>Connexion</title>
+    <title>Log in</title>
 
     
 

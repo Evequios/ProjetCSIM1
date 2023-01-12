@@ -16,12 +16,14 @@ if(isset($_POST['submit'])){
   $mail = $_POST['inputEmail'];
   $password = $_POST['inputPassword'];
   $password2 = $_POST['inputPassword2'];
+
+  // header("Location : index.php?".$prenom.' '.$nom.' '.$telephone.' '.$mail.' '.$password.' '.$password2);
   
   // Vérification de l'existence d'un compte avec ce mail
-  $mailcheckclient = pg_num_rows(pg_query($conn, "SELECT 'idClient' FROM Client WHERE identifiantcompte='$mail'"));
-  $mailcheckgarage = pg_num_rows(pg_query($conn, "SELECT 'idGarage' FROM Garage WHERE identifiantcompte='$mail'"));
-  if($mailcheckclient > 0 || $mailcheckgarage > 0){ // Si un compte est déjà créé avec cette adresse mail
-    header("Location : inscription.php?invalidmail");
+  $mailcheckclient = pg_num_rows(pg_query($conn, "SELECT idclient FROM Client WHERE identifiantcompte='$mail'"));
+  $mailcheckgarage = pg_num_rows(pg_query($conn, "SELECT idgarage FROM Garage WHERE identifiantcompte='$mail'"));
+  if($mailcheckclient > 0 || $mailcheckgarage > 0){// Si un compte est déjà créé avec cette adresse mail
+    header("Location: inscription_client.php?invalidmail");
     exit;
   }
   else{
@@ -31,7 +33,7 @@ if(isset($_POST['submit'])){
       header("Location: connexion.php");
       exit;
     }else{// Si les mots de passes sont différents
-      header("Location: inscription.php?invalidpw");
+      header("Location: inscription_client.php?invalidpw");
       exit;
     }
   }

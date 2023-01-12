@@ -43,35 +43,57 @@ if(isset($_SESSION['email'])){
     else{ // Si c'est un garage
         $sqlidgarage = "SELECT idgarage FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
         $idUtilisateur = pg_query($conn,$sqlidgarage);
-        while($row = pg_fetch_assoc($idUtilisateur)){
-            $id = $row['idgarage'];
+        $nb_rows = pg_num_rows($idUtilisateur);
+        if ($nb_rows == 1){
+            while($row = pg_fetch_assoc($idUtilisateur)){
+                $id = $row['idgarage'];
+            }
+
+            $sqlnom = "SELECT nomgarage FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
+            $nomutilisateur = pg_query($conn, $sqlnom);
+            while ($row = pg_fetch_assoc($nomutilisateur)){
+            $nom = $row['nomgarage'];
+            }
+
+            $sqlcrn= "SELECT crn FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
+            $crnutilisateur = pg_query($conn, $sqlcrn);
+            while ($row = pg_fetch_assoc($crnutilisateur)){
+            $crn = $row['crn'];
+            }
+
+
+            $sqladresse= "SELECT adresse FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
+            $adresseutilisateur = pg_query($conn, $sqladresse);
+            while ($row = pg_fetch_assoc($adresseutilisateur)){
+            $adresse = $row['adresse'];
+            }
+
+            $type = 'garage';
+
+            $sqlmdp = "SELECT motdepassecompte FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
+            $mdputilisateur = pg_query($conn, $sqlmdp);
+            while($row = pg_fetch_assoc($mdputilisateur)){
+                $mdp=$row['motdepassecompte'];
+            }
         }
 
-        $sqlnom = "SELECT nomgarage FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
-        $nomutilisateur = pg_query($conn, $sqlnom);
-        while ($row = pg_fetch_assoc($nomutilisateur)){
-        $nom = $row['nomgarage'];
-        }
+        else{
+            $sqlidadmin = "SELECT idadministrateur FROM administrateur WHERE identifiantcompte='$_SESSION[email]'";
+            $idUtilisateur = pg_query($conn,$sqlidadmin);
+            $nb_rows = pg_num_rows($idUtilisateur);
+            if ($nb_rows == 1){
+                while($row = pg_fetch_assoc($idUtilisateur)){
+                    $id = $row['idadministrateur'];
+                }
 
-        $sqlcrn= "SELECT crn FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
-        $crnutilisateur = pg_query($conn, $sqlcrn);
-        while ($row = pg_fetch_assoc($crnutilisateur)){
-        $crn = $row['crn'];
-        }
+                $type = 'administrateur';
 
-
-        $sqladresse= "SELECT adresse FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
-        $adresseutilisateur = pg_query($conn, $sqladresse);
-        while ($row = pg_fetch_assoc($adresseutilisateur)){
-        $adresse = $row['adresse'];
-        }
-
-        $type = 'garage';
-
-        $sqlmdp = "SELECT motdepassecompte FROM Garage WHERE identifiantcompte='$_SESSION[email]'";
-        $mdputilisateur = pg_query($conn, $sqlmdp);
-        while($row = pg_fetch_assoc($mdputilisateur)){
-            $mdp=$row['motdepassecompte'];
+                $sqlmdp = "SELECT motdepassecompte FROM administrateur WHERE identifiantcompte='$_SESSION[email]'";
+                $mdputilisateur = pg_query($conn, $sqlmdp);
+                while($row = pg_fetch_assoc($mdputilisateur)){
+                    $mdp=$row['motdepassecompte'];
+                }
+            }
         }
     }
 }

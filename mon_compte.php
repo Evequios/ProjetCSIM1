@@ -1,12 +1,12 @@
 <?php
 include('db.php');
 // Si l'id n'a pas pu être récupéré ou si l'utilisateur n'est pas connecté
-if(!isset($_GET['id']) || empty($_GET['id']) || !isset($_SESSION['email'])){
-  header("Location:index.php");
-  exit;
-}
+// if(!isset($_GET['id']) || empty($_GET['id']) || !isset($_SESSION['email'])){
+//   header("Location:index.php");
+//   exit;
+// }
 
-if(isset($_POST['submit'])){
+if(isset($_POST['update'])){
   if($type == 'client'){
     $p = $_POST['inputPrenom'];
     $n = $_POST['inputNom'];
@@ -17,7 +17,7 @@ if(isset($_POST['submit'])){
     pg_query($conn, "UPDATE client
     SET nomclient='$n', prenomclient='$p', motdepassecompte='$pw'
     WHERE idClient = '$id'");
-    header("Location: index.php");
+    header("Location:index.php?p=".$p."&n=".$n);
   }
 } 
 
@@ -31,7 +31,7 @@ if(isset($_POST['submit'])){
     <meta name="description" content="">
     <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
     <meta name="generator" content="Jekyll v3.8.6">
-    <title>Mon compte</title>
+    <title>My account</title>
 
     <link rel="canonical" href="https://getbootstrap.com/docs/4.4/examples/jumbotron/">
 
@@ -61,79 +61,81 @@ if(isset($_POST['submit'])){
   </head>
   <body>
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-  <a class="navbar-brand"><b>ProjetM1</b></a>
-  <li class="navbar-toggler" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-    </li>
-  
-
-  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a href="index.php" class="nav-link">Accueil<span class="sr-only">(current)</span></a>
+    <a class="navbar-brand"><b>ProjetCSI-IA</b></a>
+    <li class="navbar-toggler" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
       </li>
-      
-      <li class="nav-item active">
-        <a class="nav-link" href="produits.php">Tous les produits</a>
-      </li>
+    
+    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a href="index.php" class="nav-link">Homepage<span class="sr-only">(current)</span></a>
+        </li>
+        
+        <li class="nav-item active">
+          <a class="nav-link" href="offres.php">Offers</a>
+        </li>
 
-      <?php if(isset ($statut)){?>
-      <li class="nav-item active">
-        <a class="nav-link" href="commandes.php">Commandes</a>
-      </li>
-      <?php }?>
-      
+        <?php if(isset($_SESSION['email']) && $type != 'client'){ ?>
+        <li class="nav-item active">
+          <a class="nav-link" href="vehicules.php">Vehicles</a>
+        </li>
+        <?php } ?>
 
-      <?php if(isset ($statut)){ if($statut=='Responsable'){?>
-      <li class="nav-item active">
-        <a class="nav-link" href="creation_utilisateur.php">Créer un utilisateur</a> 
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="clients.php">Clients</a> 
-      </li>
-      <?php }}?>
+        <?php if(isset($_SESSION['email']) && $type == 'client'){?>
+        <li class="nav-item active">
+          <a class="nav-link" href="mes_propositions.php">My purchase proposals</a>
+        </li>
+        <?php }?>
 
-      
-    </ul>
+        <?php if(isset($_SESSION['email']) && $type == 'garage'){?>
+        <li class="nav-item active">
+          <a class="nav-link" href="propositions.php">Manage purchase proposals</a>
+        </li>
+        <?php }?>
 
-    <form class="form-inline my-2 my-lg-0">
-      <?php if(isset($_SESSION['email'])){?>
-      <?php if(!isset($statut)){?><a href="panier.php?id=<?=$id?>" class="btn btn-outline-success my-2 my-sm-0">Panier</a><?php }?>
-      &nbsp;
-      <a href="mon_compte.php?id=<?= $id?><?php if(isset($statut)){echo '&?statut='.$statut;}?>" class="btn btn-outline-success my-2 my-sm-0">My account</a>
-      &nbsp;
-      <a href="logout.php" class="btn btn-outline-success my-2 my-sm-0">Log out</a>
-      <?php } else { ?>
-      <a href="connexion.php" class="btn btn-outline-success my-2 my-sm-0">Log in</a>
-      &nbsp;
-      <a href="inscription.php" class="btn btn-outline-success my-2 my-sm-0">Sing up</a>
-      <?php } ?>
-    </form>
-  </div>
-</nav>
+        <?php if(isset($_SESSION['email']) && $type != 'client'){ ?>
+        <li class="nav-item active">
+          <a class="nav-link" href="bilan.php">Reports</a>
+        </li>
+        <?php }?>
+      </ul>
+
+      <form class="form-inline my-2 my-lg-0">
+        <?php if(isset($_SESSION['email'])){?>
+        <a href="mon_compte.php?id=<?= $id?><?php if(isset($statut)){echo '&?statut='.$statut;}?>" class="btn btn-outline-success my-2 my-sm-0">My account</a>
+        &nbsp;
+        <a href="logout.php" class="btn btn-outline-success my-2 my-sm-0">Log out</a>
+        <?php } else { ?>
+        <a href="connexion.php" class="btn btn-outline-success my-2 my-sm-0">Log in</a>
+        &nbsp;
+        <a href="inscription.php" class="btn btn-outline-success my-2 my-sm-0">Sign up</a>
+        <?php } ?>
+      </form>
+    </div>
+  </nav>
 
 <main role="main">
   <!-- Main jumbotron for a primary marketing message or call to action -->
   <div class="jumbotron" style="background-color:#fff;">
     <div class="container">
-    <form>
+    <form method="POST">
       <br>
       <h2>Your details</h2>
       <br>
-      <?php if($type == 'client'){?> <font size="6"><a href="mes_commandes.php?id=<?=$_GET['id']?>">My purchase proposals</a></font>
+      <?php if($type == 'client'){?>
       
-
       <div class="form-group row">
     <label for="staticEmail" class="col-sm-2 col-form-label">First name : </label>
     <div class="col-sm-10">
-      <input type="text" name="prenom" id="inputPrenom" class="form-control" value="<?php echo $prenom;?>">
+      <input type="text" name="inputPrenom" id="inputPrenom" class="form-control" value="<?php echo $prenom;?>">
     </div>
   </div>
 
       <div class="form-group row">
     <label class="col-sm-2 col-form-label">Last name : </label>
     <div class="col-sm-10">
-      <input type="text" name="nom" id="inputNom" class="form-control" value="<?php echo $nom;?>">
+      <input type="text" name="inputNom" id="inputNom" class="form-control" value="<?php echo $nom;?>">
     </div>
   </div>
   <div class="form-group row">
@@ -145,14 +147,13 @@ if(isset($_POST['submit'])){
   <div class="form-group row">
     <label for="inputPassword" class="col-sm-2 col-form-label">Password : </label>
     <div class="col-sm-10">
-      <input type="password" name="motdepasse" class="form-control" id="inputPassword" value="<?php echo $mdp; ?>">
+      <input type="password" name="inputPassword" class="form-control" id="inputPassword" value="<?php echo $mdp; ?>">
     </div>
     
   </div><?php } 
 
 
-  if($type == 'garage') {?> <font size="6"><a href="mes_commandes.php?id=<?=$_GET['id']?>">My sales offers </a></font>
-      
+  if($type == 'garage') {?>
 
     <div class="form-group row">
   <label for="staticEmail" class="col-sm-2 col-form-label">Name : </label>
@@ -186,8 +187,24 @@ if(isset($_POST['submit'])){
     <input type="password" name="motdepasse" class="form-control" id="inputPassword" value="<?php echo $mdp; ?>">
   </div>
   
-</div><?php } ?>
-  <center><button name="modifier" type="submit" class="info">Update</button></center>
+</div><?php } 
+
+    if($type == 'administrateur'){ ?>
+<div class="form-group row">
+  <label class="col-sm-2 col-form-label">Email : </label>
+  <div class="col-sm-10">
+    <input type="text" name="email" readonly class="form-control-plaintext" id="staticEmail" value="<?php echo $_SESSION['email']; ?>">
+  </div>
+</div>
+<div class="form-group row">
+  <label for="inputPassword" class="col-sm-2 col-form-label">Password : </label>
+  <div class="col-sm-10">
+    <input readonly type="password" name="motdepasse" class="form-control" id="inputPassword" value="<?php echo $mdp; ?>">
+  </div>
+    <?php }
+  if($type != 'administrateur'){?>
+  <center><button name="update" type="submit" class="info">Update</button></center>
+  <?php } ?>
 </form>
   </div>
   </div>
